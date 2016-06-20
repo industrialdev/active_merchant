@@ -18,6 +18,48 @@ module ActiveMerchant #:nodoc:
       self.homepage_url = 'http://www.moneris.com/'
       self.display_name = 'Moneris'
 
+      STANDARD_ERROR_CODE_MAPPING = {
+        '051' => STANDARD_ERROR_CODE[:expired_card], #￼Expired Card
+        '056' => STANDARD_ERROR_CODE[:invalid_number], # No Support, Card Not supported
+        '075' => STANDARD_ERROR_CODE[:incorrect_number], # Invalid PAN Length
+        # '088' => nil, # Place call
+        '096' => STANDARD_ERROR_CODE[:incorrect_pin], # PIN Requried
+        '097' => STANDARD_ERROR_CODE[:invalid_number], # PIN Requried
+        # '101' => nil, # Place call
+        # '102' => nil, # Place call
+        '105' => STANDARD_ERROR_CODE[:invalid_number], # Card Not supported
+        '113' => STANDARD_ERROR_CODE[:processing_error], # Timeout
+        '201' => STANDARD_ERROR_CODE[:incorrect_pin], # Incorrect PIN
+
+        '208' => STANDARD_ERROR_CODE[:invalid_expiry_date], # Incorrect expiration date
+
+        '430' => STANDARD_ERROR_CODE[:expired_card], # AMEX - Expired card
+        # '431' => nil, # AMEX - Call Amex
+        # '434' => nil, # AMEX - Call 03 Note: Invalid CVD
+        '435' => STANDARD_ERROR_CODE[:processing_error], # AMEX - System down
+        '437' => STANDARD_ERROR_CODE[:card_declined], # AMEX - Declined
+        '438' => STANDARD_ERROR_CODE[:card_declined], # AMEX - Declined
+        '439' => STANDARD_ERROR_CODE[:processing_error], # AMEX - Service error
+
+        '475' => STANDARD_ERROR_CODE[:invalid_expiry_date], #￼CREDIT CARD - Invalid expiration date
+        '476' => STANDARD_ERROR_CODE[:processing_error], #￼CREDIT CARD - Invalid transaction, rejected
+        # '477' => nil, #￼CREDIT CARD - Refer call
+        '478' => STANDARD_ERROR_CODE[:pickup_card], #￼CREDIT CARD - Decline, Pick up card, Call (41-HOLD)
+        '479' => STANDARD_ERROR_CODE[:pickup_card], #￼CREDIT CARD - Decline, Pick up card, Call
+        '480' => STANDARD_ERROR_CODE[:pickup_card], #￼CREDIT CARD - Decline, Pick up card, Call (43-HOLD)
+        '481' => STANDARD_ERROR_CODE[:card_declined], #￼CREDIT CARD - Decline
+        '482' => STANDARD_ERROR_CODE[:expired_card], #￼CREDIT CARD - Expired card
+        '484' => STANDARD_ERROR_CODE[:expired_card], #￼CREDIT CARD - Expired card - refer
+
+        '486' => STANDARD_ERROR_CODE[:incorrect_cvc], #￼CREDIT CARD - CVV Cryptographic error
+        '487' => STANDARD_ERROR_CODE[:incorrect_cvc], #￼CREDIT CARD - Invalid CVV
+        '489' => STANDARD_ERROR_CODE[:incorrect_cvc], #￼CREDIT CARD - Invalid CVV
+        '490' => STANDARD_ERROR_CODE[:incorrect_cvc], #￼CREDIT CARD - Invalid CVV
+
+        '878' => STANDARD_ERROR_CODE[:incorrect_pin], #￼PIN Length error
+        '901' => STANDARD_ERROR_CODE[:expired_card], #￼Capture - Expired Card
+      }.freeze
+
       # Initialize the Gateway
       #
       # The gateway requires that a valid login and password be passed
@@ -211,11 +253,14 @@ module ActiveMerchant #:nodoc:
         raw = ssl_post(url, data)
         response = parse(raw)
 
-        Response.new(successful?(response), message_from(response[:message]), response,
+        success = successful?(response)
+
+        Response.new(success, message_from(response[:message]), response,
           :test          => test?,
           :avs_result    => { :code => response[:avs_result_code] },
           :cvv_result    => response[:cvd_result_code] && response[:cvd_result_code][-1,1],
-          :authorization => authorization_from(response)
+          :authorization => authorization_from(response),
+          :error_code    => success ? nil : error_code_from(response)
         )
       end
 
@@ -323,6 +368,19 @@ module ActiveMerchant #:nodoc:
           "res_purchase_cc"    => [:data_key, :order_id, :cust_id, :amount, :crypt_type],
           "res_preauth_cc"     => [:data_key, :order_id, :cust_id, :amount, :crypt_type]
         }
+      end
+
+      def error_code_from(response)
+        STANDARD_ERROR_CODE_MAPPING[response[:response_code]] || error_code_from_message(response[:message])
+      end
+
+      def error_code_from_message(message)
+        case message
+          when /invalid pan/i
+            STANDARD_ERROR_CODE[:incorrect_number]
+          else
+            nil
+        end
       end
     end
   end

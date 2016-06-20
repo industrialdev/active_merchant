@@ -28,6 +28,7 @@ class MonerisTest < Test::Unit::TestCase
     assert response = @gateway.purchase(100, @credit_card, @options)
     assert_success response
     assert_equal '58-0_3;1026.1', response.authorization
+    refute response.error_code
   end
 
   def test_successful_purchase_with_network_tokenization
@@ -46,6 +47,7 @@ class MonerisTest < Test::Unit::TestCase
 
     assert response = @gateway.authorize(100, @credit_card, @options)
     assert_failure response
+    assert_equal Gateway::STANDARD_ERROR_CODE[:card_declined], response.error_code
   end
 
   def test_deprecated_credit
