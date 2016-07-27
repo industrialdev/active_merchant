@@ -74,8 +74,9 @@ module ActiveMerchant #:nodoc:
       #                            Defaults to false.  (optional)
       def initialize(options = {})
         requires!(options, :login, :password)
-        @cvv_enabled = options[:cvv_enabled]
-        @avs_enabled = options[:avs_enabled]
+        @cvv_enabled    = options[:cvv_enabled]
+        @avs_enabled    = options[:avs_enabled]
+        @recur_enabled  = options[:recur_enabled]
         options = { :crypt_type => 7 }.merge(options)
         super
       end
@@ -313,6 +314,8 @@ module ActiveMerchant #:nodoc:
             transaction.add_element(avs_element(parameters[:address])) if @avs_enabled && parameters[:address]
           when :cvd_info
             transaction.add_element(cvd_element(parameters[:cvd_value])) if @cvv_enabled
+          when :recur
+            transaction.add_element(recur_element(parameters[:recur])) if @recur_enabled
           else
             transaction.add_element(key.to_s).text = parameters[key] unless parameters[key].blank?
           end
@@ -321,6 +324,15 @@ module ActiveMerchant #:nodoc:
         transaction
       end
 
+      def recur_element(recur)
+        element = REXML::Element.new('recur')
+
+        recur.each do |key, value|
+          element.add_element(key).text = value
+        end
+        element
+      end
+      
       def avs_element(address)
         full_address = "#{address[:address1]} #{address[:address2]}"
         tokens = full_address.split(/\s+/)
