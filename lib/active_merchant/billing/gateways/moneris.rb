@@ -315,7 +315,7 @@ module ActiveMerchant #:nodoc:
           when :cvd_info
             transaction.add_element(cvd_element(parameters[:cvd_value])) if @cvv_enabled
           when :recur
-            transaction.add_element(recur_element(parameters[:recur])) if @recur_enabled
+            transaction.add_element(recur_element(parameters[:recur])) if @recur_enabled && parameters[:recur]
           else
             transaction.add_element(key.to_s).text = parameters[key] unless parameters[key].blank?
           end
