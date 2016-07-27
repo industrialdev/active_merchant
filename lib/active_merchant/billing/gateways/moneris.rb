@@ -328,6 +328,9 @@ module ActiveMerchant #:nodoc:
         element = REXML::Element.new('recur')
 
         recur.each do |key, value|
+          value =
+            Date.parse(value.to_s).strftime("%Y/%m/%d") if key == :start_date
+            
           element.add_element(key.to_s).text = value
         end
         element
