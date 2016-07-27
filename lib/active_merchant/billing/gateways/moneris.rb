@@ -328,7 +328,7 @@ module ActiveMerchant #:nodoc:
         element = REXML::Element.new('recur')
 
         recur.each do |key, value|
-          element.add_element(key).text = value
+          element.add_element(key.to_s).text = value
         end
         element
       end
