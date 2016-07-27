@@ -115,6 +115,7 @@ module ActiveMerchant #:nodoc:
         post[:order_id]   = options[:order_id]
         post[:address]    = options[:billing_address] || options[:address]
         post[:crypt_type] = options[:crypt_type] || @options[:crypt_type]
+        post[:recur]      = options[:recur]
         action = if post[:cavv]
           'cavv_purchase'
         elsif post[:data_key].blank?
