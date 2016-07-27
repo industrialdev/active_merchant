@@ -350,7 +350,7 @@ module ActiveMerchant #:nodoc:
 
       def actions
         {
-          "purchase"           => [:order_id, :cust_id, :amount, :pan, :expdate, :crypt_type, :avs_info, :cvd_info, :track2, :pos_code],
+          "purchase"           => [:order_id, :cust_id, :amount, :pan, :expdate, :crypt_type, :avs_info, :cvd_info, :track2, :pos_code, :recur],
           "preauth"            => [:order_id, :cust_id, :amount, :pan, :expdate, :crypt_type, :avs_info, :cvd_info, :track2, :pos_code],
           "command"            => [:order_id],
           "refund"             => [:order_id, :amount, :txn_number, :crypt_type],
